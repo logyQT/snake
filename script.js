@@ -25,7 +25,7 @@ const addApple = () => {
     let t = 0;
     let x = Math.floor(Math.random() * gameSize.x) * cellSize;
     let y = Math.floor(Math.random() * gameSize.y) * cellSize;
-    while ((snake.head.x == x && snake.head.y == y) || t == 1000) {
+    while ((snake.head.x == x && snake.head.y == y) || t != 1000) {
         x = Math.floor(Math.random() * gameSize.x) * cellSize;
         y = Math.floor(Math.random() * gameSize.y) * cellSize;
         t++;
