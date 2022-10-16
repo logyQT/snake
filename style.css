@@ -9,6 +9,16 @@ body {
     display: grid;
     place-items: center;
     background: #222;
+    color: whitesmoke;
+}
+.wrapper {
+    display: flex;
+    flex-direction: column;
+}
+.score {
+    position: fixed;
+    text-shadow: 1px 1px 0 black, -1px -1px 0 black, 1px 0 0 black, -1px 0 0 black, 0 1px 0 black, 0 -1px 0 black;
+    padding: 2px;
 }
 .game-window {
     background: black;

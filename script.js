@@ -6,28 +6,35 @@ const maxFrame = 10;
 const subFrameSize = 1 / maxFrame;
 
 const gw = document.querySelector(".game-window");
+const scoreElement = document.querySelector(".score");
+const ctx = gw.getContext("2d");
 gw.width = gameSize.y * cellSize;
 gw.height = gameSize.x * cellSize;
-const ctx = gw.getContext("2d");
 
 let snake = { head: { x: cellSize * 10, y: cellSize * 10 }, body: [] };
 let apples = new Array();
 
 let vel = { x: 1, y: 0 };
 let vel2 = { x: 0, y: 0 };
-let score = 0;
-let xdiff = 0;
-let ydiff = 0;
+let tailDiff = { x: 0, y: 0 };
+let headDiff = { x: 0, y: 0 };
 let frame = 0;
+let score = 0;
 
 const addApple = () => {
+    let t = 0;
     let x = Math.floor(Math.random() * gameSize.x) * cellSize;
     let y = Math.floor(Math.random() * gameSize.y) * cellSize;
-    while (snake.head.x == x && snake.head.y == y) {
+    while ((snake.head.x == x && snake.head.y == y) || t == 1000) {
         x = Math.floor(Math.random() * gameSize.x) * cellSize;
         y = Math.floor(Math.random() * gameSize.y) * cellSize;
+        t++;
     }
     apples.push({ x: x, y: y });
+};
+
+const updateScore = () => {
+    scoreElement.innerText = "Score: " + score;
 };
 
 const draw = () => {
@@ -39,8 +46,8 @@ const draw = () => {
     });
 
     ctx.fillStyle = "lime";
-    // frame++;
     if (frame == maxFrame) frame = 0;
+
     if (vel2.x == 1) {
         ctx.fillRect(snake.head.x + cellSize * (subFrameSize * frame) - cellSize, snake.head.y, cellSize, cellSize);
     } else if (vel2.x == -1) {
@@ -54,33 +61,33 @@ const draw = () => {
         ctx.fillRect(snake.body[i].x, snake.body[i].y, cellSize, cellSize);
     }
     if (snake.body.length == 1) {
-        xdiff = snake.head.x - snake.body[snake.body.length - 1].x;
-        ydiff = snake.head.y - snake.body[snake.body.length - 1].y;
+        tailDiff.x = snake.head.x - snake.body[snake.body.length - 1].x;
+        tailDiff.y = snake.head.y - snake.body[snake.body.length - 1].y;
     } else if (snake.body.length > 1) {
-        xdiff = snake.body[snake.body.length - 2].x - snake.body[snake.body.length - 1].x;
-        ydiff = snake.body[snake.body.length - 2].y - snake.body[snake.body.length - 1].y;
+        tailDiff.x = snake.body[snake.body.length - 2].x - snake.body[snake.body.length - 1].x;
+        tailDiff.y = snake.body[snake.body.length - 2].y - snake.body[snake.body.length - 1].y;
     }
 
-    if (xdiff == 20) {
+    if (tailDiff.x == 20) {
         ctx.fillRect(snake.body[snake.body.length - 1].x + (cellSize * (subFrameSize * frame) - cellSize), snake.body[snake.body.length - 1].y, cellSize, cellSize);
-        xdiff = 0;
-    } else if (xdiff == -20) {
+        tailDiff.x = 0;
+    } else if (tailDiff.x == -20) {
         ctx.fillRect(snake.body[snake.body.length - 1].x - (cellSize * (subFrameSize * frame) - cellSize), snake.body[snake.body.length - 1].y, cellSize, cellSize);
-        xdiff = 0;
+        tailDiff.x = 0;
     }
-    if (ydiff == 20) {
+    if (tailDiff.y == 20) {
         ctx.fillRect(snake.body[snake.body.length - 1].x, snake.body[snake.body.length - 1].y + (cellSize * (subFrameSize * frame) - cellSize), cellSize, cellSize);
-        ydiff = 0;
-    } else if (ydiff == -20) {
+        tailDiff.y = 0;
+    } else if (tailDiff.y == -20) {
         ctx.fillRect(snake.body[snake.body.length - 1].x, snake.body[snake.body.length - 1].y - (cellSize * (subFrameSize * frame) - cellSize), cellSize, cellSize);
-        ydiff = 0;
+        tailDiff.y = 0;
     }
 };
 
 const update = () => {
     for (let i = 0; i < snake.body.length - 1; i++) {
         if (snake.body[i].x == snake.head.x && snake.body[i].y == snake.head.y) {
-            snake = { head: { x: cellSize * 10, y: cellSize * 10 }, body: [] };
+            window.location.reload();
         }
     }
 
@@ -90,6 +97,7 @@ const update = () => {
             apples.splice(i, 1);
             addApple();
             score++;
+            updateScore();
         }
     }
 
@@ -126,13 +134,18 @@ const call = () => {
 };
 
 const changeDirection = (k) => {
-    if (k == "w" && vel.y != 1) {
+    if (snake.body.length) {
+        headDiff.x = snake.head.x - snake.body[0].x;
+        headDiff.y = snake.head.y - snake.body[0].y;
+    }
+    console.log(headDiff);
+    if (k == "w" && vel.y != 1 && headDiff.y != 20) {
         vel = { x: 0, y: -1 };
-    } else if (k == "s" && vel.y != -1) {
+    } else if (k == "s" && vel.y != -1 && headDiff.y != -20) {
         vel = { x: 0, y: 1 };
-    } else if (k == "a" && vel.x != 1) {
+    } else if (k == "a" && vel.x != 1 && headDiff.x != 20) {
         vel = { x: -1, y: 0 };
-    } else if (k == "d" && vel.x != -1) {
+    } else if (k == "d" && vel.x != -1 && headDiff.x != -20) {
         vel = { x: 1, y: 0 };
     }
 };
