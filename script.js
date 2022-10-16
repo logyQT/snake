@@ -1,21 +1,24 @@
+"use strict";
+
 const gameSize = { x: 25, y: 25 };
 const cellSize = 20;
-let vel = { x: 1, y: 0 };
-let vel2 = { x: 0, y: 0 };
+const maxFrame = 10;
+const subFrameSize = 1 / maxFrame;
 
-let gw = document.querySelector(".game-window");
+const gw = document.querySelector(".game-window");
 gw.width = gameSize.y * cellSize;
 gw.height = gameSize.x * cellSize;
-let ctx = gw.getContext("2d");
+const ctx = gw.getContext("2d");
 
 let snake = { head: { x: cellSize * 10, y: cellSize * 10 }, body: [] };
 let apples = new Array();
-let score = 0;
-let frame = 0;
-let perf = [0, 0];
 
+let vel = { x: 1, y: 0 };
+let vel2 = { x: 0, y: 0 };
+let score = 0;
 let xdiff = 0;
 let ydiff = 0;
+let frame = 0;
 
 const addApple = () => {
     let x = Math.floor(Math.random() * gameSize.x) * cellSize;
@@ -27,10 +30,6 @@ const addApple = () => {
     apples.push({ x: x, y: y });
 };
 
-for (i = 0; i < 3; i++) {
-    addApple();
-}
-
 const draw = () => {
     ctx.clearRect(0, 0, gw.width, gw.height);
 
@@ -40,16 +39,16 @@ const draw = () => {
     });
 
     ctx.fillStyle = "lime";
-    frame++;
-    if (frame == 10) frame = 0;
+    // frame++;
+    if (frame == maxFrame) frame = 0;
     if (vel2.x == 1) {
-        ctx.fillRect(snake.head.x + cellSize * (0.1 * frame) - cellSize, snake.head.y, cellSize, cellSize);
+        ctx.fillRect(snake.head.x + cellSize * (subFrameSize * frame) - cellSize, snake.head.y, cellSize, cellSize);
     } else if (vel2.x == -1) {
-        ctx.fillRect(snake.head.x - cellSize * (0.1 * frame) + cellSize, snake.head.y, cellSize, cellSize);
+        ctx.fillRect(snake.head.x - cellSize * (subFrameSize * frame) + cellSize, snake.head.y, cellSize, cellSize);
     } else if (vel2.y == 1) {
-        ctx.fillRect(snake.head.x, snake.head.y + cellSize * (0.1 * frame) - cellSize, cellSize, cellSize);
+        ctx.fillRect(snake.head.x, snake.head.y + cellSize * (subFrameSize * frame) - cellSize, cellSize, cellSize);
     } else if (vel2.y == -1) {
-        ctx.fillRect(snake.head.x, snake.head.y - cellSize * (0.1 * frame) + cellSize, cellSize, cellSize);
+        ctx.fillRect(snake.head.x, snake.head.y - cellSize * (subFrameSize * frame) + cellSize, cellSize, cellSize);
     }
     for (let i = 0; i < snake.body.length; i++) {
         ctx.fillRect(snake.body[i].x, snake.body[i].y, cellSize, cellSize);
@@ -63,23 +62,28 @@ const draw = () => {
     }
 
     if (xdiff == 20) {
-        ctx.fillRect(snake.body[snake.body.length - 1].x + (cellSize * (0.1 * frame) - cellSize), snake.body[snake.body.length - 1].y, cellSize, cellSize);
+        ctx.fillRect(snake.body[snake.body.length - 1].x + (cellSize * (subFrameSize * frame) - cellSize), snake.body[snake.body.length - 1].y, cellSize, cellSize);
         xdiff = 0;
     } else if (xdiff == -20) {
-        ctx.fillRect(snake.body[snake.body.length - 1].x - (cellSize * (0.1 * frame) - cellSize), snake.body[snake.body.length - 1].y, cellSize, cellSize);
+        ctx.fillRect(snake.body[snake.body.length - 1].x - (cellSize * (subFrameSize * frame) - cellSize), snake.body[snake.body.length - 1].y, cellSize, cellSize);
         xdiff = 0;
     }
     if (ydiff == 20) {
-        ctx.fillRect(snake.body[snake.body.length - 1].x, snake.body[snake.body.length - 1].y + (cellSize * (0.1 * frame) - cellSize), cellSize, cellSize);
+        ctx.fillRect(snake.body[snake.body.length - 1].x, snake.body[snake.body.length - 1].y + (cellSize * (subFrameSize * frame) - cellSize), cellSize, cellSize);
         ydiff = 0;
     } else if (ydiff == -20) {
-        ctx.fillRect(snake.body[snake.body.length - 1].x, snake.body[snake.body.length - 1].y - (cellSize * (0.1 * frame) - cellSize), cellSize, cellSize);
+        ctx.fillRect(snake.body[snake.body.length - 1].x, snake.body[snake.body.length - 1].y - (cellSize * (subFrameSize * frame) - cellSize), cellSize, cellSize);
         ydiff = 0;
     }
 };
 
 const update = () => {
-    // debugger;
+    for (let i = 0; i < snake.body.length - 1; i++) {
+        if (snake.body[i].x == snake.head.x && snake.body[i].y == snake.head.y) {
+            snake = { head: { x: cellSize * 10, y: cellSize * 10 }, body: [] };
+        }
+    }
+
     for (let i = 0; i < apples.length; i++) {
         if (snake.head.x == apples[i].x && snake.head.y == apples[i].y) {
             snake.body.push({ x: apples[i].x, y: apples[i].y });
@@ -112,20 +116,14 @@ const update = () => {
         snake.head.y += vel.y * cellSize;
     }
 
-    for (let i = 0; i < snake.body.length - 1; i++) {
-        if (snake.body[i].x == snake.head.x && snake.body[i].y == snake.head.y) {
-            snake = { head: { x: cellSize * 10, y: cellSize * 10 }, body: [] };
-        }
-    }
     vel2 = { x: vel.x, y: vel.y };
 };
 
 const call = () => {
     draw();
-    if (frame == 9) update();
+    frame++;
+    if (frame == maxFrame) update();
 };
-
-let callInterval = setInterval(call, 1000 / 30);
 
 const changeDirection = (k) => {
     if (k == "w" && vel.y != 1) {
@@ -139,10 +137,8 @@ const changeDirection = (k) => {
     }
 };
 
+for (let i = 0; i < 3; i++) {
+    addApple();
+}
 document.addEventListener("keyup", (k) => changeDirection(k.key));
-window.addEventListener("blur", () => {
-    clearInterval(callInterval);
-});
-window.addEventListener("focus", () => {
-    callInterval = setInterval(call, 1000 / 30);
-});
+let callInterval = setInterval(call, 1000 / 60);
